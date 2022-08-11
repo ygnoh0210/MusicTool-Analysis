@@ -3,6 +3,12 @@
 import json
 import os
 import pandas as pd
+from scipy import stats
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# participants= {1:'김민지', 2:'유승민', 3:'차진선', 4:'김도영', 5:'허성지', 6:'윤상철', 7:'권용진', 8:'김선우', 9:'노지현', 10:'성지훈', 11:'고단아', 12:'이민희',
+#                13:'이현아', 14:'정원철', 15:'장세일', 16:'서영희', 17:'김상운', 18:'김향미', 19:'왕재완', 20:'박명기', 21:'박승언', 22:'최수백', 23:'서미금'}
 
 participants= {3:'차진선', 4:'김도영', 6:'윤상철', 9:'노지현', 10:'성지훈', 16:'서영희', 17:'김상운', 18:'김향미', 19:'왕재완', 20:'박명기', 21:'박승언', 22:'최수백', 23:'서미금'}
 info_answer={"A" :[3, 3, 3, 3, 1, 1, 1, 1, 3, 3, 2, 2, 3, 3, 1, 1, 2, 2],
@@ -11,6 +17,7 @@ info_answer={"A" :[3, 3, 3, 3, 1, 1, 1, 1, 3, 3, 2, 2, 3, 3, 1, 1, 2, 2],
              "D" :[1, 1, 3, 3, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 1, 1]}
 logged=dict()
 total=dict()
+scored=dict()
 for p in participants.keys():
     total[p]=[]
 
@@ -53,7 +60,7 @@ def test_scoring(participant_num, round_num):
         elif logged_info['Action'][i]=="Submit":
             clocking=int(logged_info['TimeStamp'][i])-time_stamp
             time.append(round(clocking/1000, 2))
-            click.append(clicking)
+            click.append(clicking-1)
             q_num=int(logged_info['Answer'][i])
             if answer_candi==0:
                 # 답 제출 x 
@@ -72,24 +79,57 @@ def test_scoring(participant_num, round_num):
         for i in range(len(score)):
             if(i%2==0):
                 score[i]=0
+    
     total[participant_num].append([score, time, click])
-    print(key,"P", value, round_num, "회기, 점수", sum(total[key][round_num-1][0]), ", 문제 Type:", G_type)
-    print("score: ", total[key][round_num-1][0])
-    print("time: ", total[key][round_num-1][1])
-    print("click: ", total[key][round_num-1][2])
-    print('\n')
+    
+
+    scored[participant_num][round_num-1]=sum(score)
+    scored[participant_num][round_num+4]=sum(time)
+    scored[participant_num][round_num+9]=sum(click)
+    # print(key, "#", value, "#", i+1, "#", sum(total[key][round_num-1][0]), "#", G_type)
+    # print(key,"P", value, round_num, "회기, 점수", sum(total[key][round_num-1][0]), ", 문제 Type:", G_type)
+    # print("score: ", total[key][round_num-1][0])
+    # print("time: ", total[key][round_num-1][1])
+    # print("click: ", total[key][round_num-1][2])
+    # print('\n')
+
+def wilcoxon(before_round, after_round):
+    target=["score"]
+    for t in target:
+        before=scored_df[str(before_round)+"R_"+t]
+        after=scored_df[str(after_round)+"R_"+t]
+        wilcoxon_result=stats.wilcoxon(before, after)
+        print(t+" - "+str(before_round)+"Round vs "+str(after_round)+"Round  :  ", wilcoxon_result)
+
+def paired_ttest(before_round, after_round):
+    target=["time", "click"]
+    for t in target:
+        before=scored_df[str(before_round)+"R_"+t]
+        after=scored_df[str(after_round)+"R_"+t]
+        paired_ttest_result=stats.ttest_rel(before, after)
+        print(t+" - "+str(before_round)+"Round vs "+str(after_round)+"Round  :  ", paired_ttest_result)
+    print("\n")
 
 
 for key, value in participants.items():
+    scored[key]=[[] for _ in range(15)]
     for i in range(5):
         raw_load(key, value, i+1)
         test_scoring(key, i+1)
-        # print(key, "#", value, "#", i+1, "#", sum(total[key][i][0]))
 
-        
-    print('\n')
-    
 
+scored_df=pd.DataFrame(scored)
+scored_df=scored_df.transpose()
+scored_df.columns=["1R_score", "2R_score", "3R_score", "4R_score", "5R_score", "1R_time", "2R_time", "3R_time", "4R_time", "5R_time", "1R_click", "2R_click", "3R_click", "4R_click", "5R_click"]
+print(scored_df)
+print("\n\nInformation Test 1R vs 2R vs 3R vs 4R vs 5R")
+
+wilcoxon(1, 5)
+paired_ttest(1, 5)
+wilcoxon(2, 3)
+paired_ttest(2, 3)
+wilcoxon(3, 4)
+paired_ttest(3, 4)
 
 
 
