@@ -17,9 +17,11 @@ info_answer={"A" :[3, 3, 3, 3, 1, 1, 1, 1, 3, 3, 2, 2, 3, 3, 1, 1, 2, 2],
              "D" :[1, 1, 3, 3, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 1, 1]}
 logged=dict()
 total=dict()
+conclude_sound=dict()
 scored=dict()
 for p in participants.keys():
     total[p]=[]
+    conclude_sound[p]=[]
 
 
 def raw_load(num, name, round):
@@ -75,11 +77,22 @@ def test_scoring(participant_num, round_num):
             answer_candi=0
             clicking=0
     # 2, 3, 4 회기에서 문제 추가로 푼사람 score 0 설정 
-    if((round_num!=1)&(round_num!=5)):
-        for i in range(len(score)):
-            if(i%2==0):
-                score[i]=0
-    
+    # if((round_num!=1)&(round_num!=5)):
+
+    if round_num==1:
+        conclude_sound[participant_num][0]=sum(score)
+        conclude_sound[participant_num][2]=sum(time)
+        conclude_sound[participant_num][4]=sum(click)
+    elif round_num==5: 
+        conclude_sound[participant_num][1]=sum(score)
+        conclude_sound[participant_num][3]=sum(time)
+        conclude_sound[participant_num][5]=sum(click)
+    for i in range(len(score)):
+        if(i%2==0):
+            score[i]=0
+            time[i]=0
+            click[i]=0
+
     total[participant_num].append([score, time, click])
     
 
@@ -93,19 +106,19 @@ def test_scoring(participant_num, round_num):
     # print("click: ", total[key][round_num-1][2])
     # print('\n')
 
-def wilcoxon(before_round, after_round):
+def wilcoxon(before_round, after_round, df_name):
     target=["score"]
     for t in target:
-        before=scored_df[str(before_round)+"R_"+t]
-        after=scored_df[str(after_round)+"R_"+t]
+        before=df_name[str(before_round)+"R_"+t]
+        after=df_name[str(after_round)+"R_"+t]
         wilcoxon_result=stats.wilcoxon(before, after)
         print(t+" - "+str(before_round)+"Round vs "+str(after_round)+"Round  :  ", wilcoxon_result)
 
-def paired_ttest(before_round, after_round):
+def paired_ttest(before_round, after_round, df_name):
     target=["time", "click"]
     for t in target:
-        before=scored_df[str(before_round)+"R_"+t]
-        after=scored_df[str(after_round)+"R_"+t]
+        before=df_name[str(before_round)+"R_"+t]
+        after=df_name[str(after_round)+"R_"+t]
         paired_ttest_result=stats.ttest_rel(before, after)
         print(t+" - "+str(before_round)+"Round vs "+str(after_round)+"Round  :  ", paired_ttest_result)
     print("\n")
@@ -113,23 +126,32 @@ def paired_ttest(before_round, after_round):
 
 for key, value in participants.items():
     scored[key]=[[] for _ in range(15)]
+    conclude_sound[key]=[[] for _ in range(6)]
     for i in range(5):
         raw_load(key, value, i+1)
         test_scoring(key, i+1)
 
+# sound 문제 포함 결과
+conclude_df =pd.DataFrame(conclude_sound)
+conclude_df=conclude_df.transpose()
+conclude_df.columns=["1R_score", "5R_score", "1R_time", "5R_time", "1R_click", "5R_click"]
+print(conclude_df)
+print("\n\nInformation Test 1R vs 5R (sound concluded)")
+# (sound 문제 포함) 1R/5R score, time, click 분석 
+wilcoxon(1, 5, conclude_df)
+paired_ttest(1, 5, conclude_df)
 
+
+# sound 문제 미포함 결과 
 scored_df=pd.DataFrame(scored)
 scored_df=scored_df.transpose()
 scored_df.columns=["1R_score", "2R_score", "3R_score", "4R_score", "5R_score", "1R_time", "2R_time", "3R_time", "4R_time", "5R_time", "1R_click", "2R_click", "3R_click", "4R_click", "5R_click"]
 print(scored_df)
 print("\n\nInformation Test 1R vs 2R vs 3R vs 4R vs 5R")
 
-wilcoxon(1, 5)
-paired_ttest(1, 5)
-wilcoxon(2, 3)
-paired_ttest(2, 3)
-wilcoxon(3, 4)
-paired_ttest(3, 4)
-
+# (sound 문제 미포함) 1R/2R 2R/3R 3R/4R 4R/5R score, time, click 분석 
+for i in range(4):
+    wilcoxon(i+1, i+2, scored_df)
+    paired_ttest(i+1, i+2, scored_df)
 
 
