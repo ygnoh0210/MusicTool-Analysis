@@ -7,10 +7,9 @@ from scipy import stats
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-# participants= {1:'김민지', 2:'유승민', 3:'차진선', 4:'김도영', 5:'허성지', 6:'윤상철', 7:'권용진', 8:'김선우', 9:'노지현', 10:'성지훈', 11:'고단아', 12:'이민희',
-#                13:'이현아', 14:'정원철', 15:'장세일', 16:'서영희', 17:'김상운', 18:'김향미', 19:'왕재완', 20:'박명기', 21:'박승언', 22:'최수백', 23:'서미금'}
+participants= {1:'김민지', 2:'유승민', 3:'차진선', 4:'김도영', 5:'허성지', 6:'윤상철', 7:'권용진', 8:'김선우', 9:'노지현', 10:'성지훈', 11:'고단아', 12:'이민희',
+            14:'정원철', 15:'장세일', 16:'서영희', 17:'김상운', 18:'김향미', 19:'왕재완', 20:'박명기', 21:'박승언', 22:'최수백', 23:'서미금'}
 
-participants= {3:'차진선', 4:'김도영', 6:'윤상철', 9:'노지현', 10:'성지훈', 16:'서영희', 17:'김상운', 18:'김향미', 19:'왕재완', 20:'박명기', 21:'박승언', 22:'최수백', 23:'서미금'}
 info_answer={"A" :[3, 3, 3, 3, 1, 1, 1, 1, 3, 3, 2, 2, 3, 3, 1, 1, 2, 2],
              "B" :[2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 3, 3],
              "C" :[1, 1, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 1, 1],
@@ -131,6 +130,8 @@ for key, value in participants.items():
         raw_load(key, value, i+1)
         test_scoring(key, i+1)
 
+writer=pd.ExcelWriter('./Result/InfoTest Result.xlsx', engine='openpyxl')
+
 # sound 문제 포함 결과
 conclude_df =pd.DataFrame(conclude_sound)
 conclude_df=conclude_df.transpose()
@@ -138,6 +139,8 @@ conclude_df.columns=["1R_score", "5R_score", "1R_time", "5R_time", "1R_click", "
 print(conclude_df)
 print("\n\nInformation Test 1R vs 5R (sound concluded)")
 # (sound 문제 포함) 1R/5R score, time, click 분석 
+conclude_df.to_excel(writer, "rawdata - round1 vs round 5")
+conclude_df.describe().to_excel(writer, "result - round1 vs round 5")
 wilcoxon(1, 5, conclude_df)
 paired_ttest(1, 5, conclude_df)
 
@@ -151,7 +154,10 @@ print("\n\nInformation Test 1R vs 2R vs 3R vs 4R vs 5R")
 
 # (sound 문제 미포함) 1R/2R 2R/3R 3R/4R 4R/5R score, time, click 분석 
 for i in range(4):
+    scored_df.to_excel(writer, "rawdata - round"+str(i+1)+" vs round"+str(i+2))
+    scored_df.describe().to_excel(writer, "round"+str(i+1)+" vs round"+str(i+2))
     wilcoxon(i+1, i+2, scored_df)
     paired_ttest(i+1, i+2, scored_df)
+writer.save()
 
 
