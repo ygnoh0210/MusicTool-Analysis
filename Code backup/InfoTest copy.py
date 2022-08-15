@@ -102,6 +102,12 @@ def test_scoring(participant_num, round_num):
     scored[participant_num][round_num-1]=sum(score)
     scored[participant_num][round_num+4]=sum(time)
     scored[participant_num][round_num+9]=sum(click)
+    # print(key, "#", value, "#", i+1, "#", sum(total[key][round_num-1][0]), "#", G_type)
+    # print(key,"P", value, round_num, "회기, 점수", sum(total[key][round_num-1][0]), ", 문제 Type:", G_type)
+    # print("score: ", total[key][round_num-1][0])
+    # print("time: ", total[key][round_num-1][1])
+    # print("click: ", total[key][round_num-1][2])
+    # print('\n')
 
 def wilcoxon(before_round, after_round, df_name):
     target=["score"]
@@ -124,30 +130,32 @@ def visualization(type):
     target=["score", "time", "click"]
     if type=="before-after compare":
         for t in target:
-            fig, ax=plt.subplots()
-            ax.boxplot([conclude_df["1R_"+t], conclude_df["5R_"+t]], 
-                    labels=["1R", "5R"])
-            plt.title("1Round vs 5Round "+t)
+            sns.boxplot(x="1R_"+t, y="5R_"+t, data=conclude_df)
+            plt.title="1Round vs 5Round "+t
+            if t=="score":
+                plt.axis([0, 18, 0, 18])
             plt.show()
-            # sns.boxplot(x="1R_"+t, y="5R_"+t, data=conclude_df)
-            
 
     elif type=="two round compare":
         for t in target: 
             for i in range(4):
                 sns.boxplot(x=str(i+1)+"R_"+t, y=str(i+2)+"R_"+t, data=scored_df)
-                plt.title(str(i+1)+"Round vs "+str(i+2)+"Round "+t)
-                # if t=="score":
-                #     plt.axis([0, 9, 0, 9])
+                plt.title=str(i+1)+"Round vs "+str(i+2)+"Round "+t
+                if t=="score":
+                    plt.axis([0, 9, 0, 9])
                 plt.show()
     elif type=="total round compare":
         for t in target:
             fig, ax=plt.subplots()
             ax.boxplot([scored_df["1R_"+t],scored_df["2R_"+t], scored_df["3R_"+t], scored_df["4R_"+t], scored_df["5R_"+t]], 
                     labels=["1R", "2R", "3R", "4R", "5R"])
-            plt.title("Total Round Compare  "+t)
+            plt.title="Total Round Compare  "+t
             plt.show()
-
+        
+        # sns.boxplot(scored_df["1R score"], scored_df["2R_score"], scored_df["3R_score"], scored_df["4R_score"], scored_df["5R_score"], 
+        #             labels=["1Round", "2Round", "3Round", "4Round", "5Round"])
+        # plt.title="Total Round Compare"
+        # plt.show()
 
 
 for key, value in participants.items():
@@ -163,7 +171,8 @@ writer=pd.ExcelWriter('./Result/InfoTest Result.xlsx', engine='openpyxl')
 conclude_df =pd.DataFrame(conclude_sound)
 conclude_df=conclude_df.transpose()
 conclude_df.columns=["1R_score", "5R_score", "1R_time", "5R_time", "1R_click", "5R_click"]
-
+# print(conclude_df)
+# print("\n\nInformation Test 1R vs 5R (sound concluded)")
 # (sound 문제 포함) 1R/5R score, time, click 분석 
 conclude_df.to_excel(writer, "rawdata - round1 vs round 5")
 conclude_df.describe().to_excel(writer, "result - round1 vs round 5")
@@ -174,9 +183,9 @@ paired_ttest(1, 5, conclude_df)
 scored_df=pd.DataFrame(scored)
 scored_df=scored_df.transpose()
 scored_df.columns=["1R_score", "2R_score", "3R_score", "4R_score", "5R_score", "1R_time", "2R_time", "3R_time", "4R_time", "5R_time", "1R_click", "2R_click", "3R_click", "4R_click", "5R_click"]
-# 더 자세한 옵션 프린팅 more options can be specified also
-# with pd.option_context('display.max_rows', None, 'display.max_columns', None):  
-#     print(scored_df)
+with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
+    print(scored_df)
+# print("\n\nInformation Test 1R vs 2R vs 3R vs 4R vs 5R")
 
 # (sound 문제 미포함) 1R/2R 2R/3R 3R/4R 4R/5R score, time, click 분석 
 for i in range(4):
