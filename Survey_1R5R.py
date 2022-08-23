@@ -84,6 +84,10 @@ def condition_wilcoxon():
             print("Wilcoxon Condition:"+str(c)+"   Question:"+str(q+1), wilcoxon_result)
         print("\n")
 
+# def q_and_c_wilcoxon():
+    # sum result adding 
+    
+
 
 # 데이터 로드
 raw_load()
@@ -109,7 +113,8 @@ combination_df[combination_df['조건']==2].describe().to_excel(writer, "result 
 combination_df[combination_df['조건']==3].describe().to_excel(writer, "result c3 music + haptic")
 combination_df[combination_df['조건']==4].describe().to_excel(writer, "result c4 music + visual + haptic")
 
-
+# question 합산 결과 condition별 통계분석 - wilcoxon
+q_and_c_wilcoxon()
 
 
 writer.save()
