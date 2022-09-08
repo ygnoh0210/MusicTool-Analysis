@@ -81,7 +81,11 @@ def test_scoring(participant_num, round_num):
             clicking=0
     # 2, 3, 4 회기에서 문제 추가로 푼사람 score 0 설정 
     # if((round_num!=1)&(round_num!=5)):
-
+    print(score)
+    score[17]=0
+    score[16]=0
+    time[17]=0
+    time[16]=0
     if round_num==1:
         conclude_sound[participant_num][0]=sum(score)
         conclude_sound[participant_num][2]=sum(time)
@@ -109,7 +113,7 @@ def wilcoxon(before_round, after_round, df_name):
         before=df_name[str(before_round)+"R_"+t]
         after=df_name[str(after_round)+"R_"+t]
         wilcoxon_result=stats.wilcoxon(before, after)
-        # print(t+" - "+str(before_round)+"Round vs "+str(after_round)+"Round  :  ", wilcoxon_result)
+        print(t+" - "+str(before_round)+"Round vs "+str(after_round)+"Round  :  ", wilcoxon_result)
 
 def paired_ttest(before_round, after_round, df_name):
     target=["time", "click"]
@@ -117,8 +121,8 @@ def paired_ttest(before_round, after_round, df_name):
         before=df_name[str(before_round)+"R_"+t]
         after=df_name[str(after_round)+"R_"+t]
         paired_ttest_result=stats.ttest_rel(before, after)
-    #     print(t+" - "+str(before_round)+"Round vs "+str(after_round)+"Round  :  ", paired_ttest_result)
-    # print("\n")
+        print(t+" - "+str(before_round)+"Round vs "+str(after_round)+"Round  :  ", paired_ttest_result)
+    print("\n")
 
 def visualization(type):
     target=["score", "time", "click"]
@@ -128,7 +132,7 @@ def visualization(type):
             ax.boxplot([conclude_df["1R_"+t], conclude_df["5R_"+t]], 
                     labels=["1R", "5R"])
             plt.title("1Round vs 5Round "+t)
-            plt.show()
+            # plt.show()
             # sns.boxplot(x="1R_"+t, y="5R_"+t, data=conclude_df)
             
 
@@ -139,14 +143,14 @@ def visualization(type):
                 plt.title(str(i+1)+"Round vs "+str(i+2)+"Round "+t)
                 # if t=="score":
                 #     plt.axis([0, 9, 0, 9])
-                plt.show()
+                # plt.show()
     elif type=="total round compare":
         for t in target:
             fig, ax=plt.subplots()
             ax.boxplot([scored_df["1R_"+t],scored_df["2R_"+t], scored_df["3R_"+t], scored_df["4R_"+t], scored_df["5R_"+t]], 
                     labels=["1R", "2R", "3R", "4R", "5R"])
             plt.title("Total Round Compare  "+t)
-            plt.show()
+            # plt.show()
 
 
 
@@ -157,7 +161,8 @@ for key, value in participants.items():
         raw_load(key, value, i+1)
         test_scoring(key, i+1)
 
-writer=pd.ExcelWriter('./Result/InfoTest Result.xlsx', engine='openpyxl')
+writer=pd.ExcelWriter('./Result/InfoTest Result except9Q.xlsx', engine='openpyxl')
+
 
 # sound 문제 포함 결과
 conclude_df =pd.DataFrame(conclude_sound)
